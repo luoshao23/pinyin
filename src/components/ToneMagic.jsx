@@ -17,9 +17,9 @@ const ToneMagic = ({ letter }) => {
     ];
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div className="tone-container">
             <h4 style={{ fontSize: '1rem', marginBottom: '0.8rem', color: '#ff7e5f' }}>魔法调号轨道</h4>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.6rem' }}>
+            <div className="tone-grid">
                 {tones.map((t, i) => (
                     <motion.div
                         key={t}
@@ -28,18 +28,10 @@ const ToneMagic = ({ letter }) => {
                             setSelectedTone(i);
                             speak(t);
                         }}
+                        className="tone-button"
                         style={{
-                            width: '75px',
-                            height: '75px',
                             background: selectedTone === i ? '#ff7e5f' : 'white',
                             color: selectedTone === i ? 'white' : '#ff7e5f',
-                            borderRadius: '16px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
                         }}
                     >
                         <span style={{ fontSize: '1.6rem', fontWeight: 'bold' }}>{t}</span>

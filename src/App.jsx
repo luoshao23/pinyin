@@ -58,22 +58,7 @@ function App() {
               initial={{ y: -100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -100, opacity: 0 }}
-              className="glass-card"
-              style={{
-                borderRadius: '32px',
-                padding: selected.isVowel ? '1.2rem 2.5rem' : '2.5rem',
-                marginBottom: selected.isVowel ? '1.5rem' : '3rem',
-                display: 'flex',
-                flexDirection: selected.isVowel ? 'row' : 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: selected.isVowel ? '3rem' : '1rem',
-                textAlign: 'center',
-                position: 'sticky',
-                top: '0.5rem',
-                zIndex: 10,
-                boxShadow: selected.isVowel ? '0 8px 32px rgba(255, 126, 95, 0.15)' : 'none'
-              }}
+              className={`glass-card hero-section ${selected.isVowel ? 'compact' : ''}`}
             >
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <AnimatePresence mode="wait">
@@ -83,6 +68,7 @@ function App() {
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
                     transition={{ type: 'spring', damping: 12 }}
+                    className="letter-display"
                     style={{
                       fontSize: selected.isVowel ? '5.5rem' : '8rem',
                       fontWeight: '900',
@@ -109,7 +95,7 @@ function App() {
               </div>
 
               {selected.isVowel && (
-                <div style={{ flex: 1, maxWidth: '500px' }}>
+                <div style={{ flex: 1, width: '100%', maxWidth: '500px' }}>
                   <ToneMagic letter={selected.letter} />
                 </div>
               )}
