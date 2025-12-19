@@ -4,6 +4,7 @@ import { Star, Sparkles, BookOpen, FlaskConical } from 'lucide-react';
 import AlphabetChart from './components/AlphabetChart';
 import ToneMagic from './components/ToneMagic';
 import BlendingLab from './components/BlendingLab';
+import PinyinGame from './components/PinyinGame';
 import './index.css';
 
 function App() {
@@ -122,6 +123,19 @@ function App() {
           </section>
         </div>
       </main>
+
+      {/* Pinyin Game Section */}
+      <section style={{ maxWidth: '1000px', margin: '4rem auto', padding: '0 2rem' }}>
+        <h2 style={{
+          fontSize: '2rem',
+          marginBottom: '1.5rem',
+          textAlign: 'center',
+          color: '#2d3436'
+        }}>
+          🎮 拼音小测验 Pinyin Quiz
+        </h2>
+        <PinyinGame />
+      </section>
 
       <footer style={{ textAlign: 'center', marginTop: '4rem', paddingBottom: '2rem', color: '#b2bec3' }}>
         <p>✨ 愿每个孩子都能在拼音的世界里自由翱翔 ✨</p>
