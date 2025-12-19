@@ -37,7 +37,8 @@ const BlendingLab = () => {
                 // Convert back to base for character lookup (remove u rule if any)
                 // Actually, the result from getCombinationResult is what we show
                 // But character map uses the standard "ba", "miao" keys
-                const charKey = (initial + (medial || '') + final).replace('ü', 'u');
+                const isJQX = ['j', 'q', 'x'].includes(initial);
+                const charKey = (initial + (medial || '') + final).replace('ü', isJQX ? 'u' : 'ü');
                 setResultBase(charKey);
                 setError(false);
                 speak(combined);
@@ -150,7 +151,7 @@ const BlendingLab = () => {
                             style={{ color: '#ff7675', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                         >
                             <AlertCircle size={20} />
-                            <span>咦？这两个字母宝宝合不到一起哦</span>
+                            <span>😭咦？这几个字母宝宝合不到一起哦</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
