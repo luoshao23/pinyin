@@ -188,7 +188,7 @@ const BlendingLab = () => {
                             {PINYIN_DATA.initials.map(item => (
                                 <button
                                     key={item.char}
-                                    onClick={() => { setInitial(item.char); if (window.innerWidth <= 768) setActiveTab('medial'); }}
+                                    onClick={() => { setInitial(item.char); setResultBase(null); if (window.innerWidth <= 768) setActiveTab('medial'); }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: initial === item.char ? '#ff7e5f' : '#fff',
@@ -210,7 +210,7 @@ const BlendingLab = () => {
                             {MEDIALS.map(m => (
                                 <button
                                     key={m}
-                                    onClick={() => { setMedial(m); if (window.innerWidth <= 768) setActiveTab('final'); }}
+                                    onClick={() => { setMedial(m); setResultBase(null); if (window.innerWidth <= 768) setActiveTab('final'); }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: medial === m ? '#ffb142' : '#fff',
@@ -232,7 +232,7 @@ const BlendingLab = () => {
                             {allFinals.map(f => (
                                 <button
                                     key={f}
-                                    onClick={() => { setFinal(f); handleBlend(); }}
+                                    onClick={() => { setFinal(f); setResultBase(null); }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: final === f ? '#ff7e5f' : '#fff',
