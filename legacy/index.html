@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>趣味拼音学习乐园 - Pinyin Learning Tool</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎈 趣味拼音学习乐园</h1>
+            <p class="subtitle">让小朋友快乐学拼音</p>
+        </header>
+
+        <div id="display-area">
+            <div id="big-pinyin">?</div>
+            <div class="tones-bar" id="tones-bar">
+                <!-- Tones will be generated here -->
+            </div>
+            <p id="pinyin-mnemonic" style="margin-top: 10px; opacity: 0.8;"></p>
+        </div>
+
+        <div id="pinyin-grid-container">
+            <section class="section">
+                <h2>单韵母</h2>
+                <div id="simple-finals" class="grid"></div>
+            </section>
+
+            <section class="section">
+                <h2>声母</h2>
+                <div id="initials" class="grid"></div>
+            </section>
+
+            <section class="section">
+                <h2>复韵母 & 鼻韵母</h2>
+                <div id="compound-finals" class="grid"></div>
+            </section>
+
+            <section class="section">
+                <h2>整体认读音节</h2>
+                <div id="whole-syllables" class="grid"></div>
+            </section>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

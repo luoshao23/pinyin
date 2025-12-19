@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼音实验室 - 三拼音节练习</title>
+    <style>
+        :root {
+            --shengmu-color: #4facfe;
+            --jiemu-color: #f6d365;
+            --yunmu-color: #ff0844;
+            --bg-color: #fdfbfb;
+        }
+
+        body {
+            font-family: 'PingFang SC', sans-serif;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        /* 实验室容器 */
+        .lab-container {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .formula {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .atom {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .atom:active {
+            transform: scale(0.9);
+        }
+
+        .shengmu {
+            background: var(--shengmu-color);
+        }
+
+        .jiemu {
+            background: var(--jiemu-color);
+            color: #333;
+        }
+
+        .yunmu {
+            background: var(--yunmu-color);
+        }
+
+        .plus {
+            font-size: 30px;
+            color: #ccc;
+            font-weight: bold;
+        }
+
+        /* 合成结果展示区 */
+        .result-zone {
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed #eee;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+        #final-sound {
+            font-size: 80px;
+            font-weight: bold;
+            color: #333;
+            display: none;
+        }
+
+        .btn-mix {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .btn-mix:hover {
+            background: #764ba2;
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .label {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        /* 动画 */
+        .bounce-in {
+            display: block !important;
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🧪 拼音合成实验室</h1>
+    <p style="color: #666; margin-bottom: 20px;">点击字母听单音，点击“开始合成”练习三拼连读！</p>
+
+    <div class="lab-container">
+        <div class="formula">
+            <div class="atom shengmu" onclick="speak('j')">
+                <span>j</span>
+                <span class="label">声母</span>
+            </div>
+            <div class="plus">+</div>
+            <div class="atom jiemu" onclick="speak('i')">
+                <span>i</span>
+                <span class="label">介母</span>
+            </div>
+            <div class="plus">+</div>
+            <div class="atom yunmu" onclick="speak('ao')">
+                <span>ao</span>
+                <span class="label">韵母</span>
+            </div>
+        </div>
+
+        <button class="btn-mix" onclick="startBlending()">✨ 开始合成 ✨</button>
+
+        <div class="result-zone">
+            <div id="final-sound">jiāo</div>
+            <div id="hint-text" style="color: #999;">碰撞魔法球，产生音节！</div>
+        </div>
+    </div>
+
+    <script>
+        function speak(text, rate = 1.0) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = rate;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        async function startBlending() {
+            const resultDiv = document.getElementById('final-sound');
+            const hintText = document.getElementById('hint-text');
+
+            resultDiv.classList.remove('bounce-in');
+            hintText.innerText = "准备... 3, 2, 1!";
+
+            // 1. 读声母 (j) - 轻短
+            speak('j', 1.2);
+            await new Promise(r => setTimeout(r, 600));
+
+            // 2. 读介母 (i) - 快速
+            speak('i', 1.5);
+            await new Promise(r => setTimeout(r, 500));
+
+            // 3. 读韵母 (ao) - 响亮
+            speak('ao', 0.8);
+            await new Promise(r => setTimeout(r, 700));
+
+            // 4. 合成读音 (jiao)
+            speak('jiao', 0.7);
+
+            // 5. 显示视觉效果
+            hintText.innerText = "🎉 合成成功！";
+            resultDiv.classList.add('bounce-in');
+        }
+    </script>
+</body>
+
+</html>

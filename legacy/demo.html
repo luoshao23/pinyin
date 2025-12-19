@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼音魔法乐园</title>
+    <style>
+        :root {
+            --primary-color: #ff7e5f;
+            --secondary-color: #feb47b;
+            --bg-color: #f0f9ff;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 { color: #2c3e50; margin-bottom: 10px; }
+        p.subtitle { color: #7f8c8d; margin-bottom: 30px; }
+
+        .pinyin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary-color);
+        }
+
+        .letter {
+            font-size: 80px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+            display: block;
+        }
+
+        .mnemonic {
+            font-size: 18px;
+            color: #555;
+            background: #fff5f0;
+            padding: 8px 15px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .tones {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tone-btn {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #eee;
+            background: white;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tone-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* 动画效果 */
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .active-anim { animation: bounce 0.4s ease; }
+
+    </style>
+</head>
+<body>
+
+    <h1>✨ 拼音魔法乐园 ✨</h1>
+    <p class="subtitle">点击字母听听它的声音，点点声调戴上帽子！</p>
+
+
+
+    <div class="pinyin-grid">
+        <div class="card" onclick="speak('a', 0)">
+            <span class="letter">a</span>
+            <div class="mnemonic">🍎 张大嘴巴 a a a</div>
+            <div class="tones">
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ā')">ā</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('á')">á</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ǎ')">ǎ</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('à')">à</button>
+            </div>
+        </div>
+
+        <div class="card" onclick="speak('o', 0)">
+            <span class="letter">o</span>
+            <div class="mnemonic">🐓 公鸡喔喔 o o o</div>
+            <div class="tones">
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ō')">ō</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ó')">ó</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ǒ')">ǒ</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ò')">ò</button>
+            </div>
+        </div>
+
+        <div class="card" onclick="speak('e', 0)">
+            <span class="letter">e</span>
+            <div class="mnemonic">🦢 清清池塘一只鹅 e e e</div>
+            <div class="tones">
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ē')">ē</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('é')">é</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('ě')">ě</button>
+                <button class="tone-btn" onclick="event.stopPropagation(); speak('è')">è</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function speak(text) {
+            // 停止当前正在播放的声音
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.8; // 语速稍慢，方便小朋友模仿
+            utterance.pitch = 1.2; // 音调稍高，听起来更亲切
+
+            window.speechSynthesis.speak(utterance);
+
+            // 寻找触发事件的元素并添加动画
+            const target = event.currentTarget || event.target;
+            target.classList.add('active-anim');
+            setTimeout(() => target.classList.remove('active-anim'), 400);
+        }
+    </script>
+</body>
+</html>
