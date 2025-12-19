@@ -72,8 +72,9 @@ const BlendingLab = () => {
                     <motion.div
                         animate={error ? { x: [-5, 5, -5, 5, 0] } : {}}
                         whileHover={{ scale: 1.05 }}
-                        style={{ ...slotStyle, borderColor: initial ? '#ff7e5f' : '#dcdde1', background: initial ? '#fff9f8' : '#fff' }}
-                        onClick={() => { setInitial(null); setActiveTab('initial'); }}
+                        className={activeTab === 'initial' ? 'active-slot' : ''}
+                        style={{ ...slotStyle, borderColor: initial ? '#ff7e5f' : '#dcdde1', background: initial ? '#fff9f8' : '#fff', transition: 'all 0.3s' }}
+                        onClick={() => { setInitial(null); setResultBase(null); setActiveTab('initial'); }}
                     >
                         {initial || '声母'}
                     </motion.div>
@@ -83,8 +84,9 @@ const BlendingLab = () => {
                     <motion.div
                         animate={error ? { x: [-5, 5, -5, 5, 0] } : {}}
                         whileHover={{ scale: 1.05 }}
-                        style={{ ...slotStyle, borderStyle: 'dotted', borderColor: medial ? '#ffb142' : '#dcdde1', background: medial ? '#fffdf0' : '#fff' }}
-                        onClick={() => { setMedial(null); setActiveTab('medial'); }}
+                        className={activeTab === 'medial' ? 'active-slot' : ''}
+                        style={{ ...slotStyle, borderStyle: 'dotted', borderColor: medial ? '#ffb142' : '#dcdde1', background: medial ? '#fffdf0' : '#fff', transition: 'all 0.3s' }}
+                        onClick={() => { setMedial(null); setResultBase(null); setActiveTab('medial'); }}
                     >
                         {medial || '介母'}
                     </motion.div>
@@ -94,8 +96,9 @@ const BlendingLab = () => {
                     <motion.div
                         animate={error ? { x: [-5, 5, -5, 5, 0] } : {}}
                         whileHover={{ scale: 1.05 }}
-                        style={{ ...slotStyle, borderColor: final ? '#ff7e5f' : '#dcdde1', background: final ? '#fff9f8' : '#fff' }}
-                        onClick={() => { setFinal(null); setActiveTab('final'); }}
+                        className={activeTab === 'final' ? 'active-slot' : ''}
+                        style={{ ...slotStyle, borderColor: final ? '#ff7e5f' : '#dcdde1', background: final ? '#fff9f8' : '#fff', transition: 'all 0.3s' }}
+                        onClick={() => { setFinal(null); setResultBase(null); setActiveTab('final'); }}
                     >
                         {final || '韵母'}
                     </motion.div>
@@ -167,17 +170,6 @@ const BlendingLab = () => {
             </div>
 
             {/* Selection Area */}
-            <div className="mobile-tabs">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
 
             <div className="selection-container" style={{ position: 'relative' }}>
                 {/* Initial Panel */}
