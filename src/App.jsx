@@ -132,7 +132,7 @@ function App() {
           textAlign: 'center',
           color: '#2d3436'
         }}>
-          🎮 拼音小测验 Pinyin Quiz
+          🎮 拼音小测验
         </h2>
         <PinyinGame />
       </section>

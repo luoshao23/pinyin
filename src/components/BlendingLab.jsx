@@ -86,7 +86,14 @@ const BlendingLab = () => {
                         whileHover={{ scale: 1.05 }}
                         className={activeTab === 'medial' ? 'active-slot' : ''}
                         style={{ ...slotStyle, borderStyle: 'dotted', borderColor: medial ? '#ffb142' : '#dcdde1', background: medial ? '#fffdf0' : '#fff', transition: 'all 0.3s' }}
-                        onClick={() => { setMedial(null); setResultBase(null); setActiveTab('medial'); }}
+                        onClick={() => {
+                            if (activeTab === 'medial' && medial) {
+                                setMedial(null);
+                                setResultBase(null);
+                            } else {
+                                setActiveTab('medial');
+                            }
+                        }}
                     >
                         {medial || '介母'}
                     </motion.div>
@@ -202,7 +209,16 @@ const BlendingLab = () => {
                             {MEDIALS.map(m => (
                                 <button
                                     key={m}
-                                    onClick={() => { setMedial(m); setResultBase(null); if (window.innerWidth <= 768) setActiveTab('final'); }}
+                                    onClick={() => {
+                                        // Toggle logic
+                                        if (medial === m) {
+                                            setMedial(null);
+                                        } else {
+                                            setMedial(m);
+                                            if (window.innerWidth <= 768) setActiveTab('final');
+                                        }
+                                        setResultBase(null);
+                                    }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: medial === m ? '#ffb142' : '#fff',

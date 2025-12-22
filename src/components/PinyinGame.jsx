@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Check, Star, PartyPopper, AlertCircle } from 'lucide-react';
 import { PINYIN_DATA, CHARACTER_MAP } from '../constants/pinyinData';
-import { MEDIALS } from '../utils/pinyinValidator';
+import { MEDIALS, isValidCombination } from '../utils/pinyinValidator';
 import { speak } from '../utils/speech';
 import confetti from 'canvas-confetti';
 
@@ -90,7 +90,9 @@ const PinyinGame = () => {
         for (const m of MEDIALS) {
             if (remaining.startsWith(m)) {
                 const potentialFinal = remaining.substring(m.length);
-                if (allFinals.includes(potentialFinal)) {
+                // CRITICAL FIX: Only accept medial split if it forms a valid combination
+                // e.g. 'tie' -> medial 'i' + final 'e' is INVALID. Valid is final 'ie'.
+                if (allFinals.includes(potentialFinal) && isValidCombination(ansInitial, potentialFinal, m)) {
                     ansMedial = m;
                     ansFinal = potentialFinal;
                     found = true;
@@ -101,7 +103,6 @@ const PinyinGame = () => {
 
         if (!found) {
             // No medial, remaining must be final (or initial was missing / y/w stuff)
-            // If y/w, they act as initials.
             ansFinal = remaining;
         }
 
@@ -240,7 +241,13 @@ const PinyinGame = () => {
                     whileHover={{ scale: 1.05 }}
                     className={activeTab === 'medial' ? 'active-slot' : ''}
                     style={{ ...slotStyle, borderStyle: 'dotted', borderColor: medial ? '#ffb142' : '#dcdde1', background: medial ? '#fffdf0' : '#fff' }}
-                    onClick={() => setActiveTab('medial')}
+                    onClick={() => {
+                        if (activeTab === 'medial' && medial) {
+                            setMedial(null);
+                        } else {
+                            setActiveTab('medial');
+                        }
+                    }}
                 >
                     {medial || '介母'}
                 </motion.div>
@@ -304,7 +311,10 @@ const PinyinGame = () => {
                             {MEDIALS.map(m => (
                                 <button
                                     key={m}
-                                    onClick={() => { setMedial(m); if (window.innerWidth <= 768) setActiveTab('final'); }}
+                                    onClick={() => {
+                                        setMedial(medial === m ? null : m);
+                                        if (window.innerWidth <= 768 && medial !== m) setActiveTab('final');
+                                    }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: medial === m ? '#ffb142' : '#fff',
