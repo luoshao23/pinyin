@@ -5,6 +5,7 @@ import AlphabetChart from './components/AlphabetChart';
 import ToneMagic from './components/ToneMagic';
 import BlendingLab from './components/BlendingLab';
 import PinyinGame from './components/PinyinGame';
+import UserBar from './components/UserBar';
 import './index.css';
 
 function App() {
@@ -38,7 +39,8 @@ function App() {
   }, []);
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem' }}>
+    <div className="app-container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem', position: 'relative' }}> {/* Modified div */}
+      <UserBar onUserChange={() => setKey(k => k + 1)} /> {/* Added UserBar */}
       <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <motion.h1
           initial={{ y: -50, opacity: 0 }}

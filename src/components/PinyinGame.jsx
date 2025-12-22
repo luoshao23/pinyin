@@ -6,6 +6,8 @@ import { MEDIALS, isValidCombination, canHaveMedial } from '../utils/pinyinValid
 import { speak } from '../utils/speech';
 import confetti from 'canvas-confetti';
 
+import { userManager } from '../utils/userManager';
+
 const PinyinGame = () => {
     const [question, setQuestion] = useState(null);
     const [initial, setInitial] = useState(null);
@@ -14,6 +16,30 @@ const PinyinGame = () => {
     const [status, setStatus] = useState('idle'); // idle, success, error
     const [activeTab, setActiveTab] = useState('initial');
     const [score, setScore] = useState(0);
+
+    // New state for User & Review Mode
+    const [currentUser, setCurrentUser] = useState(userManager.getCurrentUser());
+    const [mode, setMode] = useState('random'); // 'random' or 'review'
+    const [mistakes, setMistakes] = useState([]);
+
+    useEffect(() => {
+        // Sync user state occasionally or rely on props if we lifted state up.
+        // For simplicity, we check on mount and interval, or just re-read on actions.
+        const checkUser = () => {
+            const user = userManager.getCurrentUser();
+            setCurrentUser(user);
+            if (user) {
+                setMistakes(userManager.getMistakes());
+                setScore(userManager.getScore());
+            } else {
+                setMode('random'); // Reset to random if logged out
+            }
+        };
+
+        checkUser();
+        const interval = setInterval(checkUser, 1000); // Simple polling for sync
+        return () => clearInterval(interval);
+    }, []);
 
     // Flatten data for quiz pool
     const getQuizPool = () => {
@@ -29,21 +55,51 @@ const PinyinGame = () => {
     };
 
     const generateQuestion = () => {
-        const pool = getQuizPool();
-        const randomItem = pool[Math.floor(Math.random() * pool.length)];
+        let targetItem;
+
+        if (mode === 'review' && currentUser) {
+            const currentMistakes = userManager.getMistakes();
+            setMistakes(currentMistakes);
+
+            if (currentMistakes.length > 0) {
+                // Pick random from mistakes
+                const mistake = currentMistakes[Math.floor(Math.random() * currentMistakes.length)];
+        // Construct item. Note: mistake stores {char, pinyin}
+        // We need to find tone if not stored, or simplified mistake record.
+        // Our userManager stores object {char, pinyin}
+        // We can infer tone or just use as is if we have enough info.
+        // Let's assume mistake item has char/pinyin.
+        // We need tone for playback logic if possible, or extract from pinyin.
+        // Simpler: Find matching item in pool to get full details (tone).
+                const pool = getQuizPool();
+                targetItem = pool.find(i => i.char === mistake.char);
+                if (!targetItem) {
+                    // Fallback if char not found in map (rare)
+                    targetItem = { ...mistake, tone: 1 };
+                }
+            } else {
+                // Mistake list empty! Support fallback or notify.
+                speak('错题本空空如也！真棒！');
+                setMode('random');
+                return; // Will re-run in random mode next call or explicit
+            }
+        }
+
+        if (!targetItem) {
+            // Random mode or fallback
+            const pool = getQuizPool();
+            targetItem = pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        const randomItem = targetItem;
 
         // Parse the answer components
-        // Logic to split pinyin into initial, medial, final
-        // This is a bit tricky, let's use a simpler approach:
-        // We know the valid initials, medials, finals.
-        // We can parse the string.
         let remaining = randomItem.pinyin;
         let ansInitial = null;
         let ansMedial = null;
         let ansFinal = null;
 
         // Find Initial
-        // Sort initials by length desc to match 'zh' before 'z'
         const sortedInitials = [...PINYIN_DATA.initials].sort((a,b) => b.char.length - a.char.length);
         for (const init of sortedInitials) {
             if (remaining.startsWith(init.char)) {
@@ -58,40 +114,16 @@ const PinyinGame = () => {
             else if (remaining.startsWith('w')) { ansInitial = 'w'; remaining = remaining.substring(1); }
         }
 
-        // Find Medial (i, u, ü) that is NOT the whole final
-        // Check if remaining starts with a medial AND has more chars
-        // But be careful: 'ian' -> i is medial? Yes. 'in' -> i is part of final.
-        // Simplified parse logic based on known structure:
-        // If remaining is just a final, then no medial.
-        // If remaining starts with i/u/ü and rest is a valid final, then medial.
-
-        // Actually, our UI allows picking Medial separately.
-        // Let's brute force valid combinations from validator logic or just pre-calc
-        // For simplicity in this game:
-        // We expect the user to reproduce the structure.
-        // 'jia' -> j + i + a? Or j + ia?
-        // In BlendingLab, valid finals list includes 'ia', 'ian' etc?
-        // Let's check PINYIN_DATA.
-        // simpleFinals: a, o, e, i, u, ü
-        // compoundFinals: ai, ei, ... iang, iong?
-        // Wait, PINYIN_DATA has 'ia', 'ua'? No.
-        // It has 'a', 'o', 'e'... and 'an', 'ang'.
-        // So 'jia' is j + i + a.
-
-        // Let's use a robust parser or simple heuristic.
-        // Most robust: match against all known finals first.
+        // Find Medial
         const allFinals = [
             ...PINYIN_DATA.simpleFinals.map(f => f.char),
             ...PINYIN_DATA.compoundFinals.map(f => f.char)
         ];
 
-        // Try to match medial + final
         let found = false;
         for (const m of MEDIALS) {
             if (remaining.startsWith(m)) {
                 const potentialFinal = remaining.substring(m.length);
-                // CRITICAL FIX: Only accept medial split if it forms a valid combination
-                // e.g. 'tie' -> medial 'i' + final 'e' is INVALID. Valid is final 'ie'.
                 if (allFinals.includes(potentialFinal) && isValidCombination(ansInitial, potentialFinal, m)) {
                     ansMedial = m;
                     ansFinal = potentialFinal;
@@ -102,7 +134,6 @@ const PinyinGame = () => {
         }
 
         if (!found) {
-            // No medial, remaining must be final (or initial was missing / y/w stuff)
             ansFinal = remaining;
         }
 
@@ -122,14 +153,11 @@ const PinyinGame = () => {
 
     useEffect(() => {
         generateQuestion();
-    }, []);
+    }, [mode]); // Re-gen when mode changes
 
     const handleCheck = () => {
         if (!question) return;
 
-        // Basic check: combine logic or direct string match?
-        // Direct match of components is safest for this game
-        // Handling nulls: user might not pick medial.
         const userI = initial || '';
         const userM = medial || '';
         const userF = final || '';
@@ -138,33 +166,33 @@ const PinyinGame = () => {
         const correctM = question.ansMedial || '';
         const correctF = question.ansFinal || '';
 
-        // Special handling:
-        // j/q/x + ü -> user picks ü, system usually treats as u in visual, but logic uses ü.
-        // In this game, let's correspond to what BlendingLab expects.
-        // If target is 'ju', ansInitial='j', ansFinal='u' (because parser saw u).
-        // But strictly it IS ü.
-        // Let's tolerate both for ü/u after j/q/x/y?
-
-        // Actually, let's construct the visual pinyin from user selection and match it against target pinyin.
-        // But simple component match is better for educational feedback.
-
         const isCorrect = (userI === correctI) && (userM === correctM) && ((userF === correctF) || (userF === 'ü' && correctF === 'u' && ['j','q','x','y'].includes(userI)));
 
         if (isCorrect) {
             setStatus('success');
             speak('答对了！' + question.char);
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-            setTimeout(() => {
-                setScore(s => s + 1);
-                generateQuestion();
-            }, 2000);
+
+            // Resolve mistake if in review mode (or always resolve if fixed?)
+            // Logic: If user gets it right, remove from mistakes anyway.
+            if (currentUser) {
+                userManager.resolveMistake(question.char);
+                const newScore = userManager.addScore(10);
+                setScore(newScore);
+            } else {
+                setScore(s => s + 10);
+            }
+
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            setTimeout(generateQuestion, 2000);
         } else {
             setStatus('error');
             speak('再试一次');
+
+            // Record mistake
+            if (currentUser) {
+                userManager.recordMistake(question.char, question.pinyin);
+            }
+
             setTimeout(() => setStatus('idle'), 1000);
         }
     };
@@ -174,7 +202,7 @@ const PinyinGame = () => {
         ...PINYIN_DATA.compoundFinals.map(f => f.char)
     ];
 
-    // -- Shared Styles (copied from BlendingLab for consistency) --
+    // -- Shared Styles --
     const slotStyle = {
         width: '60px', height: '60px',
         background: '#fff', border: '2px dashed #dcdde1',
@@ -192,6 +220,39 @@ const PinyinGame = () => {
             {/* Quiz Header */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+
+                    {/* Mode Toggle for Logged In Users */}
+                    {currentUser && (
+                        <div className="glass-card" style={{ padding: '0.3rem', borderRadius: '25px', display: 'flex', background: '#f1f2f6' }}>
+                            <button
+                                onClick={() => setMode('random')}
+                                style={{
+                                    padding: '0.4rem 1rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                                    background: mode === 'random' ? '#ff7e5f' : 'transparent',
+                                    color: mode === 'random' ? '#fff' : '#636e72', fontWeight: 'bold'
+                                }}
+                            >
+                                🎲 随机
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (userManager.getMistakes().length === 0) {
+                                        speak('没有错题哦，太棒了！');
+                                    } else {
+                                        setMode('review');
+                                    }
+                                }}
+                                style={{
+                                    padding: '0.4rem 1rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                                    background: mode === 'review' ? '#ff7e5f' : 'transparent',
+                                    color: mode === 'review' ? '#fff' : '#636e72', fontWeight: 'bold'
+                                }}
+                            >
+                                📕 错题 ({userManager.getMistakes().length})
+                            </button>
+                        </div>
+                    )}
+
                     <div className="glass-card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '20px' }}>
                         <Star fill="#f1c40f" color="#f1c40f" size={20} />
                         <span style={{ fontWeight: 'bold', color: '#2d3436' }}>得分: {score}</span>
@@ -220,7 +281,7 @@ const PinyinGame = () => {
                     {question ? question.char : '?'}
                 </motion.div>
                 <div style={{ marginTop: '0.5rem', color: '#636e72', fontSize: '0.9rem' }}>
-                    猜猜它的拼音是什么？
+                    {mode === 'review' ? '📕 复习错题中...' : '猜猜它的拼音是什么？'}
                 </div>
             </div>
 
@@ -292,14 +353,11 @@ const PinyinGame = () => {
                                     key={item.char}
                                     onClick={() => {
                                         setInitial(item.char);
-                                        setResultBase(null);
-                                        if (window.innerWidth <= 768) {
-                                            // Smart navigation: Skip medial if not applicable
-                                            if (canHaveMedial(item.char)) {
-                                                setActiveTab('medial');
-                                            } else {
-                                                setActiveTab('final');
-                                            }
+                                        // Smart navigation: Skip medial if not applicable
+                                        if (canHaveMedial(item.char)) {
+                                            setActiveTab('medial');
+                                        } else {
+                                            setActiveTab('final');
                                         }
                                     }}
                                     style={{
