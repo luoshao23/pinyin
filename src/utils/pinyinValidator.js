@@ -56,6 +56,17 @@ const VALID_TRIPLES = {
     }
 };
 
+export const canHaveMedial = (initial) => {
+    if (!initial) return false;
+    // Check if this initial appears in any of the valid lists for i, u, ü medials
+    for (const medialRules of Object.values(VALID_TRIPLES)) {
+        for (const validInitials of Object.values(medialRules)) {
+            if (validInitials.includes(initial)) return true;
+        }
+    }
+    return false;
+};
+
 export const isValidCombination = (initial, final, medial = null) => {
     if (!initial || !final) return false;
 

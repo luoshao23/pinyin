@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Check, Star, PartyPopper, AlertCircle } from 'lucide-react';
 import { PINYIN_DATA, CHARACTER_MAP } from '../constants/pinyinData';
-import { MEDIALS, isValidCombination } from '../utils/pinyinValidator';
+import { MEDIALS, isValidCombination, canHaveMedial } from '../utils/pinyinValidator';
 import { speak } from '../utils/speech';
 import confetti from 'canvas-confetti';
 
@@ -290,7 +290,18 @@ const PinyinGame = () => {
                             {PINYIN_DATA.initials.map(item => (
                                 <button
                                     key={item.char}
-                                    onClick={() => { setInitial(item.char); if(window.innerWidth <= 768) setActiveTab('medial'); }}
+                                    onClick={() => {
+                                        setInitial(item.char);
+                                        setResultBase(null);
+                                        if (window.innerWidth <= 768) {
+                                            // Smart navigation: Skip medial if not applicable
+                                            if (canHaveMedial(item.char)) {
+                                                setActiveTab('medial');
+                                            } else {
+                                                setActiveTab('final');
+                                            }
+                                        }
+                                    }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: initial === item.char ? '#ff7e5f' : '#fff',
