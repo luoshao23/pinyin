@@ -8,6 +8,8 @@ import confetti from 'canvas-confetti';
 
 import { userManager } from '../utils/userManager';
 
+import { GRADE_DATA } from '../constants/gradeData';
+
 const PinyinGame = () => {
     const [question, setQuestion] = useState(null);
     const [initial, setInitial] = useState(null);
@@ -21,6 +23,9 @@ const PinyinGame = () => {
     const [currentUser, setCurrentUser] = useState(userManager.getCurrentUser());
     const [mode, setMode] = useState('random'); // 'random' or 'review'
     const [mistakes, setMistakes] = useState([]);
+
+    // Grade Filter State
+    const [selectedGrade, setSelectedGrade] = useState('all');
 
     useEffect(() => {
         // Sync user state occasionally or rely on props if we lifted state up.
@@ -51,6 +56,18 @@ const PinyinGame = () => {
                 }
             });
         });
+
+        // Filter by Grade if selected
+        if (selectedGrade !== 'all') {
+            const gradeChars = GRADE_DATA[selectedGrade] || [];
+            const filteredPool = pool.filter(item => gradeChars.includes(item.char));
+            if (filteredPool.length > 0) {
+                return filteredPool;
+            }
+            // Fallback if empty (e.g. chars in grade data don't map to pinyin data? unlikely but safe)
+            console.warn(`No questions found for Grade ${selectedGrade}, falling back to all.`);
+        }
+
         return pool;
     };
 
@@ -153,7 +170,7 @@ const PinyinGame = () => {
 
     useEffect(() => {
         generateQuestion();
-    }, [mode]); // Re-gen when mode changes
+    }, [mode, selectedGrade]); // Re-gen when mode or grade changes
 
     const handleCheck = () => {
         if (!question) return;
@@ -252,6 +269,26 @@ const PinyinGame = () => {
                             </button>
                         </div>
                     )}
+
+                    {/* Grade Selector */}
+                    <div className="glass-card" style={{ padding: '0.3rem', borderRadius: '15px', background: '#fff' }}>
+                        <select
+                            value={selectedGrade}
+                            onChange={(e) => {
+                                setSelectedGrade(e.target.value);
+                                setMode('random'); // Reset to random when changing grade
+                            }}
+                            style={{
+                                border: 'none', background: 'transparent', fontSize: '0.9rem',
+                                fontWeight: 'bold', color: '#636e72', padding: '0.2rem', cursor: 'pointer', outline: 'none'
+                            }}
+                        >
+                            <option value="all">全部年级</option>
+                            <option value="1">一年级</option>
+                            <option value="3">三年级</option>
+                            <option value="6">六年级</option>
+                        </select>
+                    </div>
 
                     <div className="glass-card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '20px' }}>
                         <Star fill="#f1c40f" color="#f1c40f" size={20} />
