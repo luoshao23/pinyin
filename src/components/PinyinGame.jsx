@@ -9,6 +9,7 @@ import confetti from 'canvas-confetti';
 import { userManager } from '../utils/userManager';
 
 import { GRADE_DATA } from '../constants/gradeData';
+import { parseTextToQuizItems } from '../utils/pinyinGenerator';
 
 const PinyinGame = () => {
     const [question, setQuestion] = useState(null);
@@ -26,6 +27,10 @@ const PinyinGame = () => {
 
     // Grade Filter State
     const [selectedGrade, setSelectedGrade] = useState('all');
+
+    // Custom Mode State
+    const [customText, setCustomText] = useState('');
+    const [customPool, setCustomPool] = useState([]);
 
     useEffect(() => {
         // Sync user state occasionally or rely on props if we lifted state up.
@@ -48,30 +53,63 @@ const PinyinGame = () => {
 
     // Flatten data for quiz pool
     const getQuizPool = () => {
-        const pool = [];
-        Object.entries(CHARACTER_MAP).forEach(([pinyin, chars]) => {
-            chars.forEach((char, index) => {
-                if (char) {
-                    pool.push({ char, pinyin, tone: index + 1 });
-                }
-            });
-        });
-
-        // Filter by Grade if selected
-        if (selectedGrade !== 'all') {
-            const gradeChars = GRADE_DATA[selectedGrade] || [];
-            const filteredPool = pool.filter(item => gradeChars.includes(item.char));
-            if (filteredPool.length > 0) {
-                return filteredPool;
-            }
-            // Fallback if empty (e.g. chars in grade data don't map to pinyin data? unlikely but safe)
-            console.warn(`No questions found for Grade ${selectedGrade}, falling back to all.`);
+        // 1. Custom Mode
+        if (selectedGrade === 'custom') {
+            return customPool.length > 0 ? customPool : [];
         }
 
-        return pool;
+        // 2. Standard Modes (G1, G3, G6, All)
+        // We now use pinyin-pro (parseTextToQuizItems) for these too!
+        let sourceChars = [];
+
+        if (selectedGrade !== 'all') {
+            // Specific Grade
+            sourceChars = GRADE_DATA[selectedGrade] || [];
+        } else {
+            // "All" - Accumulate all characters we know
+            // We can still use CHARACTER_MAP as a "Dictionary of Characters"
+            // ignoring its hardcoded pinyin keys.
+            Object.values(CHARACTER_MAP).forEach(chars => {
+                sourceChars.push(...chars.filter(c => c)); // filter empty strings
+            });
+            // Or use GRADE_DATA if we think it's cleaner?
+            // CHARACTER_MAP covers more ground likely. Let's strictly use CHARACTER_MAP chars as source.
+        }
+
+        // Convert the list of chars into quiz items using pinyin-pro engine
+        // Join them to pass as a block of text (or keep array, helper handles text)
+        // Our helper expects a string text.
+        const textToParse = sourceChars.join('');
+        return parseTextToQuizItems(textToParse);
+    };
+
+    const handleCustomSubmit = () => {
+        if (!customText.trim()) return;
+        const items = parseTextToQuizItems(customText);
+        if (items.length > 0) {
+            setCustomPool(items);
+            speak(`已加载 ${items.length} 个字`);
+            setMode('random');
+            // Removed setTimeout. useEffect [customPool] will trigger generateQuestion.
+        } else {
+            speak('没有识别到汉字哦');
+        }
     };
 
     const generateQuestion = () => {
+        // If in custom mode and no pool, don't generate (show input UI)
+        if (selectedGrade === 'custom' && customPool.length === 0) {
+            setQuestion(null);
+            return;
+        }
+
+        const pool = getQuizPool();
+        if (!pool || pool.length === 0) {
+            // Should not happen if logic is correct, but safety net
+            console.warn("Empty pool in generateQuestion");
+            return;
+        }
+
         let targetItem;
 
         if (mode === 'review' && currentUser) {
@@ -170,7 +208,7 @@ const PinyinGame = () => {
 
     useEffect(() => {
         generateQuestion();
-    }, [mode, selectedGrade]); // Re-gen when mode or grade changes
+    }, [mode, selectedGrade, customPool]); // Re-gen when mode, grade, or customPool changes
 
     const handleCheck = () => {
         if (!question) return;
@@ -287,6 +325,7 @@ const PinyinGame = () => {
                             <option value="1">一年级</option>
                             <option value="3">三年级</option>
                             <option value="6">六年级</option>
+                            <option value="custom">📝 自定义</option>
                         </select>
                     </div>
 
@@ -302,21 +341,69 @@ const PinyinGame = () => {
                     </button>
                 </div>
 
-                <motion.div
-                    key={question?.char}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="glass-card"
-                    style={{
-                        width: '120px', height: '120px', margin: '0 auto',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '4rem', fontWeight: 'bold', color: '#2d3436',
-                        borderRadius: '30px', boxShadow: '0 8px 32px rgba(255, 126, 95, 0.15)',
-                        border: '4px solid #fff'
-                    }}
-                >
-                    {question ? question.char : '?'}
-                </motion.div>
+                {/* Custom Input Panel */}
+                {selectedGrade === 'custom' && customPool.length === 0 && (
+                    <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '20px', marginBottom: '2rem' }}>
+                        <h3 style={{ color: '#2d3436', marginBottom: '1rem' }}>📝 自定义测试内容</h3>
+                        <textarea
+                            value={customText}
+                            onChange={(e) => setCustomText(e.target.value)}
+                            placeholder="请粘贴一段文字（例如：白日依山尽...）"
+                            style={{
+                                width: '100%', height: '100px', padding: '1rem',
+                                borderRadius: '15px', border: '2px dashed #dcdde1',
+                                fontSize: '1rem', marginBottom: '1rem', outline: 'none'
+                            }}
+                        />
+                        <button
+                            onClick={handleCustomSubmit}
+                            style={{
+                                padding: '0.8rem 2rem', borderRadius: '50px', border: 'none',
+                                background: '#ff7e5f', color: '#fff', fontWeight: 'bold', cursor: 'pointer'
+                            }}
+                        >
+                            开始测试
+                        </button>
+                    </div>
+                )}
+
+                {/* Reset Custom Button (if playing custom) */}
+                {selectedGrade === 'custom' && customPool.length > 0 && (
+                    <div style={{ marginBottom: '1rem' }}>
+                        <button
+                            onClick={() => { setCustomPool([]); setCustomText(''); setQuestion(null); }}
+                            style={{ fontSize: '0.8rem', color: '#ff7675', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                            重新输入内容
+                        </button>
+                    </div>
+                )}
+
+                <AnimatePresence mode="wait">
+                    {question ? (
+                        <motion.div
+                            key={question.char}
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            className="glass-card"
+                            style={{
+                                width: '120px', height: '120px', margin: '0 auto',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '4rem', fontWeight: 'bold', color: '#2d3436',
+                                borderRadius: '30px', boxShadow: '0 8px 32px rgba(255, 126, 95, 0.15)',
+                                border: '4px solid #fff'
+                            }}
+                        >
+                            {question.char}
+                        </motion.div>
+                    ) : (selectedGrade !== 'custom' || customPool.length > 0 ? null : (
+                        // If no question and not waiting for input (Wait, if custom & no pool, we show input panel above. If custom & pool, we show question?)
+                        // If we have no question but expected one, assume loading or error.
+                        // But if custom and pool exists, question should be generated.
+                        null
+                    ))}
+                </AnimatePresence>
                 <div style={{ marginTop: '0.5rem', color: '#636e72', fontSize: '0.9rem' }}>
                     {mode === 'review' ? '📕 复习错题中...' : '猜猜它的拼音是什么？'}
                 </div>
