@@ -18,7 +18,7 @@ const PINYIN_FILE_MAP = {
     // Special Finals (Standalone)
     'i': 'yi1', 'u': 'wu1', 'ü': 'yu1',
     'ui': 'wei1', 'iu': 'you1', 'un': 'wen1', 'ün': 'yun1',
-    'ing': 'ying1', 'ong': 'weng1'
+    'ing': 'ying1', 'ong': 'ong1'
 };
 
 /**
