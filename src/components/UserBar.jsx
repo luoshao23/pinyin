@@ -3,22 +3,35 @@ import { User, LogOut, ChevronDown } from 'lucide-react';
 import { userManager } from '../utils/userManager';
 
 const UserBar = ({ onUserChange }) => {
-    const [currentUser, setCurrentUser] = useState(userManager.getCurrentUser());
+    const [currentUser, setCurrentUser] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [newUserName, setNewUserName] = useState('');
+    const [selectedAvatar, setSelectedAvatar] = useState(userManager.getAvatars()[0]);
+    const [allUsers, setAllUsers] = useState([]);
 
     useEffect(() => {
-        // Sync on mount
-        setCurrentUser(userManager.getCurrentUser());
+        const username = userManager.getCurrentUser();
+        if (username) {
+            setCurrentUser({ name: username, ...userManager.getUser(username) });
+        }
+        fetchAllUsers();
     }, []);
 
-    const handleLogin = (name) => {
+    const fetchAllUsers = () => {
+        const users = userManager.getAllUsers().map(name => ({
+            name, ...userManager.getUser(name)
+        }));
+        setAllUsers(users);
+    };
+
+    const handleLogin = (name, avatar) => {
         if (!name.trim()) return;
-        userManager.login(name.trim());
-        setCurrentUser(name.trim());
+        const user = userManager.login(name.trim(), avatar);
+        setCurrentUser({ name: name.trim(), ...user });
         setIsLoginModalOpen(false);
         setNewUserName('');
+        fetchAllUsers();
         if (onUserChange) onUserChange(name.trim());
     };
 
@@ -31,6 +44,11 @@ const UserBar = ({ onUserChange }) => {
 
     const handleSwitchUser = () => {
         setIsMenuOpen(false);
+        setIsLoginModalOpen(true);
+    };
+
+    const openLoginModal = () => {
+        setSelectedAvatar(userManager.getAvatars()[0]);
         setIsLoginModalOpen(true);
     };
 
@@ -47,8 +65,8 @@ const UserBar = ({ onUserChange }) => {
                             fontSize: '0.9rem', fontWeight: 'bold', color: '#2d3436'
                         }}
                     >
-                        <User size={18} color="#ff7e5f" />
-                        {currentUser}
+                        <span style={{ fontSize: '1.2rem' }}>{currentUser.avatar}</span>
+                        {currentUser.name}
                         <ChevronDown size={16} color="#636e72" />
                     </button>
 
@@ -69,7 +87,7 @@ const UserBar = ({ onUserChange }) => {
                 </div>
             ) : (
                 <button
-                    onClick={() => setIsLoginModalOpen(true)}
+                    onClick={openLoginModal}
                     className="glass-card"
                     style={{
                         padding: '0.5rem 1rem', borderRadius: '20px', cursor: 'pointer',
@@ -82,40 +100,67 @@ const UserBar = ({ onUserChange }) => {
 
             {isLoginModalOpen && (
                 <div style={overlayStyle}>
-                    <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px', width: '300px', textAlign: 'center' }}>
+                    <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px', width: '320px', textAlign: 'center' }}>
                         <h3 style={{ marginBottom: '1.5rem', color: '#2d3436' }}>👋 欢迎小朋友</h3>
 
                         <div style={{ marginBottom: '1rem', textAlign: 'left' }}>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#636e72' }}>你是谁呀？</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#636e72' }}>你的名字？</label>
                             <input
                                 type="text"
                                 value={newUserName}
                                 onChange={(e) => setNewUserName(e.target.value)}
                                 placeholder="输入名字 (比如: 宝宝)"
                                 style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid #dcdde1', fontSize: '1rem' }}
-                                onKeyDown={(e) => e.key === 'Enter' && handleLogin(newUserName)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleLogin(newUserName, selectedAvatar)}
                             />
                         </div>
 
                         <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
-                            <p style={{ fontSize: '0.8rem', color: '#b2bec3' }}>历史用户:</p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                {userManager.getAllUsers().map(u => (
-                                    <button
-                                        key={u}
-                                        onClick={() => handleLogin(u)}
-                                        style={{ padding: '0.3rem 0.8rem', borderRadius: '15px', border: '1px solid #dcdde1', background: '#fff', fontSize: '0.85rem', cursor: 'pointer' }}
-                                    >
-                                        {u}
+                             <label style={{ display: 'block', marginBottom: '0.8rem', fontSize: '0.9rem', color: '#636e72' }}>选个头像吧！</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', justifyContent: 'center' }}>
+                                {userManager.getAvatars().map(avatar => (
+                                    <button key={avatar} onClick={() => setSelectedAvatar(avatar)} style={{
+                                        fontSize: '1.8rem',
+                                        border: '2px solid transparent',
+                                        background: selectedAvatar === avatar ? '#ff7e5f' : 'transparent',
+                                        color: selectedAvatar === avatar ? '#fff' : 'inherit',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        padding: '0.2rem',
+                                        borderRadius: '50%',
+                                        width: '48px',
+                                        height: '48px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: selectedAvatar === avatar ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+                                    }}>
+                                        {avatar}
                                     </button>
                                 ))}
-                                {userManager.getAllUsers().length === 0 && <span style={{fontSize:'0.8rem', color:'#dfe6e9'}}>暂无历史记录</span>}
+                            </div>
+                        </div>
+
+
+                        <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+                            <p style={{ fontSize: '0.8rem', color: '#b2bec3' }}>历史用户:</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem', maxHeight: '100px', overflowY: 'auto' }}>
+                                {allUsers.map(u => (
+                                    <button
+                                        key={u.name}
+                                        onClick={() => handleLogin(u.name, u.avatar)}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.8rem', borderRadius: '15px', border: '1px solid #dcdde1', background: '#fff', fontSize: '0.85rem', cursor: 'pointer' }}
+                                    >
+                                        <span style={{fontSize: '1rem'}}>{u.avatar}</span> {u.name}
+                                    </button>
+                                ))}
+                                {allUsers.length === 0 && <span style={{fontSize:'0.8rem', color:'#dfe6e9'}}>暂无历史记录</span>}
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <button onClick={() => setIsLoginModalOpen(false)} style={{ ...modalBtnStyle, background: '#f1f2f6', color: '#636e72' }}>取消</button>
-                            <button onClick={() => handleLogin(newUserName)} style={{ ...modalBtnStyle, background: '#ff7e5f', color: '#fff' }}>开始！</button>
+                            <button onClick={() => handleLogin(newUserName, selectedAvatar)} style={{ ...modalBtnStyle, background: '#ff7e5f', color: '#fff' }}>开始！</button>
                         </div>
                     </div>
                 </div>
