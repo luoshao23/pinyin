@@ -41,7 +41,8 @@ export const parseTextToQuizItems = (text) => {
         // PinyinGame `getQuizPool` constructs items: { char, pinyin: 'a', tone: 1 }
 
         // So we need base pinyin without tone number.
-        const basePinyin = pinyinStr.replace(/\d/g, '');
+        const basePinyin = pinyinStr.replace(/\d/g, '').replace(/v/g, 'ü')
+            .replace(/([jqx])u/g, '$1ü');
 
         // Special handling for ü: pinyin-pro output?
         // test: lv -> lü? or lv?
@@ -64,3 +65,5 @@ export const parseTextToQuizItems = (text) => {
 
     return items;
 };
+
+// console.log(parseTextToQuizItems("学"));
