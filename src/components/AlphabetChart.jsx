@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import PinyinCard from './PinyinCard';
+import ToneMagic from './ToneMagic';
 import { PINYIN_DATA } from '../constants/pinyinData';
 
-const AlphabetChart = ({ onSelect }) => {
+const AlphabetChart = () => {
+    const [selectedVowel, setSelectedVowel] = useState(null);
+
     return (
         <div className="alphabet-chart" style={{ padding: '1rem' }}>
             <section style={{ marginBottom: '2rem' }}>
@@ -15,10 +19,24 @@ const AlphabetChart = ({ onSelect }) => {
                             mnemonic={item.mnemonic}
                             illustration={item.illustration}
                             type="final"
-                            onSelect={(l, m, i) => onSelect(l, m, i, true)}
+                            onSelect={() => setSelectedVowel(item.char)}
                         />
                     ))}
                 </div>
+                <AnimatePresence>
+                    {selectedVowel && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            style={{ overflow: 'hidden', marginTop: '1.5rem' }}
+                        >
+                            <div className="glass-card" style={{ padding: '1.2rem', borderRadius: '16px' }}>
+                                <ToneMagic letter={selectedVowel} />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </section>
 
             <section style={{ marginBottom: '2rem' }}>
@@ -31,7 +49,6 @@ const AlphabetChart = ({ onSelect }) => {
                             mnemonic={item.mnemonic}
                             illustration={item.illustration}
                             type="initial"
-                            onSelect={(l, m, i) => onSelect(l, m, i, false)}
                         />
                     ))}
                 </div>
@@ -47,7 +64,6 @@ const AlphabetChart = ({ onSelect }) => {
                             mnemonic={item.mnemonic}
                             illustration={item.illustration}
                             type="final"
-                            onSelect={(l, m, i) => onSelect(l, m, i, false)}
                         />
                     ))}
                 </div>
