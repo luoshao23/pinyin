@@ -132,25 +132,29 @@ const BlendingLab = () => {
                             >
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', maxWidth: '600px', margin: '0 auto' }}>
                                     {[0, 1, 2, 3].map(toneIndex => {
-                                        const pinyin = getTonePinyin(resultBase, toneIndex);
+                                        const tonePinyin = getTonePinyin(resultBase, toneIndex);
                                         const char = characters[toneIndex];
+                                        const hasChar = Boolean(char);
                                         return (
                                             <motion.div
                                                 key={toneIndex}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => speak(pinyin)}
+                                                whileTap={hasChar ? { scale: 0.95 } : undefined}
+                                                onClick={() => speak(tonePinyin)}
                                                 style={{
-                                                    background: '#fff',
+                                                    background: hasChar ? '#fff' : '#fafafa',
                                                     padding: '0.6rem 0.2rem',
                                                     borderRadius: '12px',
                                                     textAlign: 'center',
-                                                    boxShadow: '0 2px 10px rgba(255, 126, 95, 0.1)',
-                                                    border: '1px solid #fff3f0',
-                                                    cursor: 'pointer'
+                                                    boxShadow: hasChar ? '0 2px 10px rgba(255, 126, 95, 0.1)' : 'none',
+                                                    border: hasChar ? '1px solid #fff3f0' : '1px dashed #e0e0e0',
+                                                    cursor: 'pointer',
+                                                    opacity: hasChar ? 1 : 0.75
                                                 }}
                                             >
-                                                <div style={{ fontSize: '0.9rem', color: '#ff7e5f', fontWeight: 'bold' }}>{pinyin}</div>
-                                                <div style={{ fontSize: '1.8rem', color: '#2d3436' }}>{char || '?'}</div>
+                                                <div style={{ fontSize: '0.9rem', color: '#ff7e5f', fontWeight: 'bold' }}>{tonePinyin}</div>
+                                                <div style={{ fontSize: hasChar ? '1.8rem' : '0.85rem', color: hasChar ? '#2d3436' : '#b2bec3', minHeight: '2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    {hasChar ? char : '（少见）'}
+                                                </div>
                                             </motion.div>
                                         );
                                     })}
