@@ -84,17 +84,20 @@ export const isValidCombination = (initial, final, medial = null) => {
 export const getCombinationResult = (initial, final, medial = null) => {
     if (!isValidCombination(initial, final, medial)) return null;
 
+    // y 与 j/q/x 一样，ü 写作 u（yu / yue / yun / yuan）
+    const writesUForUmlaut = ['j', 'q', 'x', 'y'].includes(initial);
+
     if (medial) {
         let resFinal = final;
-        // Special rule for j/q/x + ü
-        if (['j', 'q', 'x'].includes(initial) && medial === 'ü') {
+        // Special rule for j/q/x/y + ü
+        if (writesUForUmlaut && medial === 'ü') {
             return initial + 'u' + resFinal;
         }
         return initial + medial + resFinal;
     }
 
-    // Special rule for j, q, x + ü
-    if (['j', 'q', 'x'].includes(initial) && (final === 'ü' || final === 'üe' || final === 'ün')) {
+    // Special rule for j, q, x, y + ü
+    if (writesUForUmlaut && (final === 'ü' || final === 'üe' || final === 'ün')) {
         return initial + final.replace('ü', 'u');
     }
 

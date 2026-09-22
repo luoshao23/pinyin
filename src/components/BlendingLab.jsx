@@ -39,8 +39,9 @@ const BlendingLab = () => {
                 // Convert back to base for character lookup (remove u rule if any)
                 // Actually, the result from getCombinationResult is what we show
                 // But character map uses the standard "ba", "miao" keys
-                const isJQX = ['j', 'q', 'x'].includes(initial);
-                const charKey = (initial + (medial || '') + final).replace('ü', isJQX ? 'u' : 'ü');
+                // y 与 j/q/x 一样，ü 写作 u（yu / yue / yun / yuan）
+                const isJQXY = ['j', 'q', 'x', 'y'].includes(initial);
+                const charKey = (initial + (medial || '') + final).replace('ü', isJQXY ? 'u' : 'ü');
                 setResultBase(charKey);
                 setError(false);
                 speak(combined);
