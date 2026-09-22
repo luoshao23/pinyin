@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, FlaskConical, AlertCircle } from 'lucide-react';
 import { speak } from '../utils/speech';
-import { PINYIN_DATA, CHARACTER_MAP, TONE_MAP, SOUND_MAP } from '../constants/pinyinData';
+import { PINYIN_DATA, CHARACTER_MAP, TONE_MAP } from '../constants/pinyinData';
 import { getCombinationResult, MEDIALS } from '../utils/pinyinValidator';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const BlendingLab = () => {
+    const isDesktop = useMediaQuery('(min-width: 769px)');
     const [initial, setInitial] = useState(null);
     const [medial, setMedial] = useState(null);
     const [final, setFinal] = useState(null);
@@ -58,12 +60,6 @@ const BlendingLab = () => {
     const [activeTab, setActiveTab] = useState('initial'); // 'initial', 'medial', 'final'
 
     const characters = CHARACTER_MAP[resultBase] || [];
-
-    const tabs = [
-        { id: 'initial', label: '1. 声母' },
-        { id: 'medial', label: '2. 介母' },
-        { id: 'final', label: '3. 韵母' }
-    ];
 
     return (
         <div style={{ padding: '1rem' }}>
@@ -180,14 +176,14 @@ const BlendingLab = () => {
 
             <div className="selection-container" style={{ position: 'relative' }}>
                 {/* Initial Panel */}
-                <div style={{ display: (activeTab === 'initial' || window.innerWidth > 768) ? 'block' : 'none' }}>
+                <div style={{ display: (activeTab === 'initial' || isDesktop) ? 'block' : 'none' }}>
                     <div className="glass-card" style={panelStyle}>
                         <h5 style={subHeaderStyle}>1. 选择声母</h5>
                         <div style={miniGridStyle}>
                             {PINYIN_DATA.initials.map(item => (
                                 <button
                                     key={item.char}
-                                    onClick={() => { setInitial(item.char); setResultBase(null); if (window.innerWidth <= 768) setActiveTab('medial'); }}
+                                    onClick={() => { setInitial(item.char); setResultBase(null); if (!isDesktop) setActiveTab('medial'); }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: initial === item.char ? '#ff7e5f' : '#fff',
@@ -202,7 +198,7 @@ const BlendingLab = () => {
                 </div>
 
                 {/* Medial Panel */}
-                <div style={{ display: (activeTab === 'medial' || window.innerWidth > 768) ? 'block' : 'none', marginTop: window.innerWidth > 768 ? '1.5rem' : '0' }}>
+                <div style={{ display: (activeTab === 'medial' || isDesktop) ? 'block' : 'none', marginTop: isDesktop ? '1.5rem' : '0' }}>
                     <div className="glass-card" style={panelStyle}>
                         <h5 style={subHeaderStyle}>2. 选择介母 (可选)</h5>
                         <div style={{ ...miniGridStyle, gridTemplateColumns: 'repeat(3, 1fr)', maxHeight: '100px' }}>
@@ -215,7 +211,7 @@ const BlendingLab = () => {
                                             setMedial(null);
                                         } else {
                                             setMedial(m);
-                                            if (window.innerWidth <= 768) setActiveTab('final');
+                                            if (!isDesktop) setActiveTab('final');
                                         }
                                         setResultBase(null);
                                     }}
@@ -233,7 +229,7 @@ const BlendingLab = () => {
                 </div>
 
                 {/* Final Panel */}
-                <div style={{ display: (activeTab === 'final' || window.innerWidth > 768) ? 'block' : 'none', marginTop: window.innerWidth > 768 ? '1.5rem' : '0' }}>
+                <div style={{ display: (activeTab === 'final' || isDesktop) ? 'block' : 'none', marginTop: isDesktop ? '1.5rem' : '0' }}>
                     <div className="glass-card" style={panelStyle} id="final-panel">
                         <h5 style={subHeaderStyle}>3. 选择韵母</h5>
                         <div style={miniGridStyle}>
@@ -255,20 +251,6 @@ const BlendingLab = () => {
                 </div>
             </div>
 
-            {/* PC Layout overrides via CSS Grid - simplified approach using the divs above */}
-            <style>{`
-                @media (min-width: 769px) {
-                    .selection-container {
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 1.5rem;
-                    }
-                    .selection-container > div {
-                        display: block !important;
-                        margin-top: 0 !important;
-                    }
-                }
-            `}</style>
         </div>
     );
 };

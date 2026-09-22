@@ -195,6 +195,19 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
+@media (min-width: 769px) {
+  .selection-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .selection-container > div {
+    display: block !important;
+    margin-top: 0 !important;
+  }
+}
+
 .tone-container {
   display: flex;
   flex-direction: column;

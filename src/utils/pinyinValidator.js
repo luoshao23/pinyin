@@ -46,7 +46,7 @@ const VALID_TRIPLES = {
     },
     'u': { // u-medial
         'a': ['g', 'k', 'h', 'zh', 'ch', 'sh'],
-        'o': ['g', 'k', 'h', 'd', 't', 'l', 'n', 'zh', 'ch', 'sh', 'r'],
+        'o': ['g', 'k', 'h', 'd', 't', 'l', 'n', 'zh', 'ch', 'sh', 'r', 'z', 'c', 's'],
         'ai': ['g', 'k', 'h', 'zh', 'ch', 'sh'],
         'an': ['g', 'k', 'h', 'd', 't', 'l', 'n', 'zh', 'ch', 'sh', 'r', 'z', 'c', 's'],
         'ang': ['g', 'k', 'h', 'zh', 'ch', 'sh']

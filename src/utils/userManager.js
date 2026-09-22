@@ -1,38 +1,60 @@
+import { isPlayableQuizItem } from './pinyinParser';
+
 const STORAGE_KEY = 'pinyin_paradise_users';
 const AVATARS = ['😊', '🥳', '😎', '🤩', '🚀', '🌟', '🦄', '🐳'];
 
+const DEFAULT_STORAGE = { users: {}, currentUser: null };
+
 const getStorage = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : { users: {}, currentUser: null };
+    try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (!data) return { ...DEFAULT_STORAGE };
+        const parsed = JSON.parse(data);
+        if (!parsed || typeof parsed !== 'object') return { ...DEFAULT_STORAGE };
+        return {
+            users: parsed.users && typeof parsed.users === 'object' ? parsed.users : {},
+            currentUser: parsed.currentUser ?? null,
+        };
+    } catch (err) {
+        console.warn('Failed to read user storage, resetting.', err);
+        return { ...DEFAULT_STORAGE };
+    }
 };
 
 const saveStorage = (data) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        return true;
+    } catch (err) {
+        console.warn('Failed to save user storage.', err);
+        return false;
+    }
+};
+
+const purgeBrokenMistakes = (user) => {
+    if (!user?.mistakes) return false;
+
+    const cleaned = user.mistakes.filter(
+        (mistake) => mistake?.pinyin && isPlayableQuizItem(mistake.pinyin)
+    );
+
+    if (cleaned.length === user.mistakes.length) return false;
+    user.mistakes = cleaned;
+    return true;
 };
 
 export const userManager = {
-    // Get current logged in user name
-    getCurrentUser: () => {
-        const data = getStorage();
-        return data.currentUser;
-    },
+    getCurrentUser: () => getStorage().currentUser,
 
-    // Get a specific user's data
     getUser: (username) => {
         const data = getStorage();
         return data.users[username];
     },
 
-    // Get list of all users
-    getAllUsers: () => {
-        const data = getStorage();
-        return Object.keys(data.users);
-    },
+    getAllUsers: () => Object.keys(getStorage().users),
 
-    // Get all available avatars
     getAvatars: () => AVATARS,
 
-    // Login (create if not exists)
     login: (username, avatar) => {
         if (!username) return;
         const data = getStorage();
@@ -40,22 +62,21 @@ export const userManager = {
             data.users[username] = {
                 mistakes: [],
                 score: 0,
-                avatar: avatar || AVATARS[Math.floor(Math.random() * AVATARS.length)]
+                avatar: avatar || AVATARS[Math.floor(Math.random() * AVATARS.length)],
             };
         }
+        purgeBrokenMistakes(data.users[username]);
         data.currentUser = username;
         saveStorage(data);
         return data.users[username];
     },
 
-    // Logout
     logout: () => {
         const data = getStorage();
         data.currentUser = null;
         saveStorage(data);
     },
 
-    // Update avatar
     updateAvatar: (username, avatar) => {
         const data = getStorage();
         if (data.users[username]) {
@@ -64,40 +85,40 @@ export const userManager = {
         }
     },
 
-    // Get mistakes for current user
     getMistakes: () => {
         const data = getStorage();
         if (!data.currentUser || !data.users[data.currentUser]) return [];
-        return data.users[data.currentUser].mistakes || [];
-    },
-
-    // Record a mistake (avoid duplicates)
-    recordMistake: (char, pinyin) => {
-        const data = getStorage();
-        if (!data.currentUser) return; // Guest mode: no recording
 
         const user = data.users[data.currentUser];
-        if (!user.mistakes) {
-            user.mistakes = [];
+        if (purgeBrokenMistakes(user)) {
+            saveStorage(data);
         }
-        const mistakeItem = { char, pinyin };
+        return user.mistakes || [];
+    },
 
-        // Check if already exists
+    recordMistake: (char, pinyin) => {
+        if (!isPlayableQuizItem(pinyin)) return;
+
+        const data = getStorage();
+        if (!data.currentUser) return;
+
+        const user = data.users[data.currentUser];
+        if (!user.mistakes) user.mistakes = [];
+
         const exists = user.mistakes.some(m => m.char === char);
         if (!exists) {
-            user.mistakes.push(mistakeItem);
+            user.mistakes.push({ char, pinyin });
             saveStorage(data);
         }
     },
 
-    // Resolve a mistake (remove from list)
     resolveMistake: (char) => {
         const data = getStorage();
         if (!data.currentUser) return;
 
         const user = data.users[data.currentUser];
         if (!user.mistakes) return;
-        
+
         const initialLength = user.mistakes.length;
         user.mistakes = user.mistakes.filter(m => m.char !== char);
 
@@ -106,14 +127,12 @@ export const userManager = {
         }
     },
 
-    // Get score
     getScore: () => {
         const data = getStorage();
         if (!data.currentUser) return 0;
         return data.users[data.currentUser]?.score || 0;
     },
 
-    // Add score
     addScore: (points) => {
         const data = getStorage();
         if (!data.currentUser) return;
@@ -122,5 +141,5 @@ export const userManager = {
         user.score = (user.score || 0) + points;
         saveStorage(data);
         return user.score;
-    }
+    },
 };

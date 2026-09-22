@@ -32,7 +32,7 @@ const AlphabetChart = () => {
                             style={{ overflow: 'hidden', marginTop: '1.5rem' }}
                         >
                             <div className="glass-card" style={{ padding: '1.2rem', borderRadius: '16px' }}>
-                                <ToneMagic letter={selectedVowel} />
+                                <ToneMagic key={selectedVowel} letter={selectedVowel} />
                             </div>
                         </motion.div>
                     )}
