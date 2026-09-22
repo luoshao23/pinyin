@@ -9,13 +9,6 @@ const ToneMagic = ({ letter }) => {
 
     if (tones.length === 0) return null;
 
-    const trackPaths = [
-        "M 10 50 L 90 50",      // 1st tone (flat)
-        "M 10 80 L 90 20",      // 2nd tone (up)
-        "M 10 30 L 50 80 L 90 30", // 3rd tone (valley)
-        "M 10 20 L 90 80"       // 4th tone (down)
-    ];
-
     return (
         <div className="tone-container">
             <h4 style={{ fontSize: '1rem', marginBottom: '0.8rem', color: '#ff7e5f' }}>魔法调号轨道</h4>
@@ -34,10 +27,7 @@ const ToneMagic = ({ letter }) => {
                             color: selectedTone === i ? 'white' : '#ff7e5f',
                         }}
                     >
-                        <span style={{ fontSize: '1.6rem', fontWeight: 'bold' }}>{t}</span>
-                        <svg width="45" height="25" viewBox="0 0 100 100">
-                            <path d={trackPaths[i]} fill="none" stroke={selectedTone === i ? 'white' : '#ff7e5f'} strokeWidth="10" strokeLinecap="round" />
-                        </svg>
+                        <span style={{ fontSize: '2rem', fontWeight: 'bold' }}>{t}</span>
                     </motion.div>
                 ))}
             </div>
