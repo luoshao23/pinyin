@@ -10,6 +10,8 @@ const normalizeFinal = (initial, remaining) => {
     if (['y', 'j', 'q', 'x'].includes(initial)) {
         if (remaining === 'ue') return 'üe';
         if (remaining === 'un') return 'ün';
+        // juan / quan / xuan / yuan：书写省略ü上两点，实际是 üan
+        if (remaining === 'uan') return 'üan';
         if (remaining === 'u' && initial !== 'y') return 'ü';
     }
     return remaining;

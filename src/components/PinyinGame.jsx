@@ -10,6 +10,7 @@ import { userManager } from '../utils/userManager';
 import { GRADE_DATA } from '../constants/gradeData';
 import { parseTextToQuizItems } from '../utils/pinyinGenerator';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { TONE_OPTIONS, buildSyllableBase, applyToneToSyllable, getToneDisplay } from '../utils/toneUtils';
 
 const PinyinGame = () => {
     const isDesktop = useMediaQuery('(min-width: 769px)');
@@ -19,6 +20,7 @@ const PinyinGame = () => {
     const [initial, setInitial] = useState(null);
     const [medial, setMedial] = useState(null);
     const [final, setFinal] = useState(null);
+    const [tone, setTone] = useState(null);
     const [status, setStatus] = useState('idle');
     const [activeTab, setActiveTab] = useState('initial');
     const [score, setScore] = useState(0);
@@ -125,6 +127,7 @@ const PinyinGame = () => {
         setInitial(null);
         setMedial(null);
         setFinal(null);
+        setTone(null);
         setStatus('idle');
         setActiveTab(ansInitial ? 'initial' : 'final');
     };
@@ -134,7 +137,15 @@ const PinyinGame = () => {
     }, [mode, selectedGrade, customPool]);
 
     const needsInitial = Boolean(question?.ansInitial);
-    const canSubmit = Boolean(final) && (!needsInitial || Boolean(initial));
+    const canSubmit = Boolean(final) && Boolean(tone) && (!needsInitial || Boolean(initial));
+
+    const handleSelectTone = (toneValue) => {
+        setTone(toneValue);
+        if (final) {
+            const base = buildSyllableBase(initial, medial, final);
+            speak(applyToneToSyllable(base, toneValue));
+        }
+    };
 
     const handleCheck = () => {
         if (!question || !canSubmit) return;
@@ -146,10 +157,12 @@ const PinyinGame = () => {
         const correctI = question.ansInitial || '';
         const correctM = question.ansMedial || '';
         const correctF = question.ansFinal || '';
+        const correctTone = question.tone || 1;
 
         const isCorrect = (userI === correctI)
             && (userM === correctM)
-            && ((userF === correctF) || (userF === 'ü' && correctF === 'u' && ['j', 'q', 'x', 'y'].includes(userI)));
+            && ((userF === correctF) || (userF === 'ü' && correctF === 'u' && ['j', 'q', 'x', 'y'].includes(userI)))
+            && (tone === correctTone);
 
         if (isCorrect) {
             setStatus('success');
@@ -237,7 +250,10 @@ const PinyinGame = () => {
                         >
                             <option value="all">全部年级</option>
                             <option value="1">一年级</option>
+                            <option value="2">二年级</option>
                             <option value="3">三年级</option>
+                            <option value="4">四年级</option>
+                            <option value="5">五年级</option>
                             <option value="6">六年级</option>
                             <option value="custom">📝 自定义</option>
                         </select>
@@ -312,7 +328,7 @@ const PinyinGame = () => {
                     )}
                 </AnimatePresence>
                 <div style={{ marginTop: '0.5rem', color: '#636e72', fontSize: '0.9rem' }}>
-                    {mode === 'review' ? '📕 复习错题中...' : '猜猜它的拼音是什么？'}
+                    {mode === 'review' ? '📕 复习错题中...' : '拼出声母、韵母，再选声调！'}
                 </div>
             </div>
 
@@ -355,7 +371,44 @@ const PinyinGame = () => {
                 >
                     {final || '韵母'}
                 </motion.div>
+
+                <motion.div
+                    animate={status === 'error' ? { x: [-5, 5, -5, 5, 0] } : {}}
+                    whileHover={{ scale: 1.05 }}
+                    style={{
+                        ...slotStyle,
+                        borderColor: tone ? '#6c5ce7' : '#dcdde1',
+                        background: tone ? '#f8f7ff' : '#fff',
+                        color: tone ? '#6c5ce7' : '#ff7e5f',
+                    }}
+                >
+                    {tone ? getToneDisplay(tone) : '声调'}
+                </motion.div>
             </div>
+
+            <AnimatePresence>
+                {final && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="glass-card quiz-tone-picker"
+                    >
+                        <span className="quiz-tone-picker-label">🎵 选声调（点一下听发音）</span>
+                        {TONE_OPTIONS.map((option) => (
+                            <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => handleSelectTone(option.value)}
+                                className={`quiz-tone-btn ${tone === option.value ? 'selected' : ''} ${option.value === 5 ? 'neutral' : ''}`}
+                            >
+                                <span className="quiz-tone-btn-mark">{option.mark}</span>
+                                <span className="quiz-tone-btn-label">{option.label}</span>
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <motion.button
@@ -427,7 +480,10 @@ const PinyinGame = () => {
                             {allFinals.map(f => (
                                 <button
                                     key={f}
-                                    onClick={() => setFinal(f)}
+                                    onClick={() => {
+                                        setFinal(f);
+                                        setTone(null);
+                                    }}
                                     style={{
                                         ...miniBtnStyle,
                                         background: final === f ? '#ff7e5f' : '#fff',

@@ -18,18 +18,18 @@ const VALID_COMBOS = {
     'g': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
     'k': ['a', 'e', 'u', 'ai', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
     'h': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
-    'j': ['i', 'u', 'ü', 'ie', 'üe', 'in', 'un', 'ün', 'ing', 'iong'],
-    'q': ['i', 'u', 'ü', 'ie', 'üe', 'in', 'un', 'ün', 'ing', 'iong'],
-    'x': ['i', 'u', 'ü', 'ie', 'üe', 'in', 'un', 'ün', 'ing', 'iong'],
-    'zh': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
-    'ch': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
-    'sh': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng'],
-    'r': ['e', 'u', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
-    'z': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
-    'c': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
-    's': ['a', 'e', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
+    'j': ['i', 'u', 'ü', 'ie', 'üe', 'in', 'un', 'ün', 'ing', 'iong', 'iu'],
+    'q': ['i', 'u', 'ü', 'ie', 'üe', 'in', 'un', 'ün', 'ing', 'iong', 'iu'],
+    'x': ['i', 'u', 'ü', 'ie', 'üe', 'in', 'un', 'ün', 'ing', 'iong', 'iu'],
+    'zh': ['a', 'e', 'i', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
+    'ch': ['a', 'e', 'i', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
+    'sh': ['a', 'e', 'i', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng'],
+    'r': ['e', 'i', 'u', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
+    'z': ['a', 'e', 'i', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
+    'c': ['a', 'e', 'i', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
+    's': ['a', 'e', 'i', 'u', 'ai', 'ei', 'ui', 'ao', 'ou', 'an', 'en', 'un', 'ang', 'eng', 'ong'],
     'y': ['a', 'o', 'e', 'i', 'u', 'ü', 'ai', 'ao', 'ou', 'ie', 'üe', 'an', 'en', 'in', 'un', 'ün', 'ang', 'eng', 'ing', 'ong'],
-    'w': ['a', 'o', 'e', 'i', 'ai', 'ei', 'an', 'en', 'ang', 'eng']
+    'w': ['a', 'o', 'e', 'i', 'u', 'ai', 'ei', 'an', 'en', 'ang', 'eng']
 };
 
 /**
@@ -52,7 +52,7 @@ const VALID_TRIPLES = {
         'ang': ['g', 'k', 'h', 'zh', 'ch', 'sh']
     },
     'ü': { // ü-medial
-        'an': ['j', 'q', 'x', 'l', 'n']
+        'an': ['j', 'q', 'x', 'y', 'l', 'n'] // juan/quan/xuan/yuan 与 lüan(实际无) 等
     }
 };
 
